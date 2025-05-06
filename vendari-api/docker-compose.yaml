@@ -1,0 +1,46 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: vendari
+    volumes:
+      - .:/home/node/app
+      - /home/node/app/.docker/mysql-data
+    ports:
+      - '3100:3100'
+      - '3101:3001'
+    networks:
+      - api-network
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    container_name: vendari-mysql
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-vendari}
+      MYSQL_USER: ${MYSQL_USER:-root}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-password}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-password}
+    ports:
+      - '3306:3306'
+    networks:
+      - api-network
+    healthcheck:
+      test: ['CMD-SHELL', 'mysqladmin ping -h localhost -u ${MYSQL_USER} --password=${MYSQL_PASSWORD} || exit 1']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+networks:
+  api-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
