@@ -7,9 +7,10 @@ async function initializeUser() {
   const password = await hashPassword('admin');
   const admin = 
     {
-      email: 'admin',
+      email: 'admin@example.com',
       password: password,
       name: 'admin',
+      address: '123 Admin Street, Admin City, Admin Country',
     }
 
   return admin;

@@ -1,9 +1,9 @@
 import { Controller, Get, Post, Body, Delete, Param, Put, Patch } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserDto } from '../dtos/create-user.dto';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { User } from '@prisma/client';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateUserDto } from '../dtos/update-user.dto';
 
 @ApiTags('Users')
 @Controller('users')
@@ -26,17 +26,15 @@ export class UsersController {
   }
   
   @Delete('/delete/:id')
-  async deleteUser(@Param('id') id: string){
-    const userId = parseInt(id, 10)
-    return this.usersService.delete(userId)
+  async deleteUser(@Param('id') id: number){
+    return this.usersService.delete(Number(id))
   }
 
   @Patch('/edit/:id')
   async editUser(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body() editUser: UpdateUserDto,
   ): Promise<User> {
-    const userId = parseInt(id, 10)
-    return this.usersService.edit(userId, editUser)
+    return this.usersService.edit(Number(id), editUser)
   }
 }

@@ -7,7 +7,6 @@ services:
     container_name: vendari
     volumes:
       - .:/home/node/app
-      - /home/node/app/.docker/mysql-data
     ports:
       - '3100:3100'
       - '3101:3001'
@@ -23,9 +22,7 @@ services:
     restart: always
     environment:
       MYSQL_DATABASE: ${MYSQL_DATABASE:-vendari}
-      MYSQL_USER: ${MYSQL_USER:-root}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-password}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-password}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
     ports:
       - '3306:3306'
     networks:
