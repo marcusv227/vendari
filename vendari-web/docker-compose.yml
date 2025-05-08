@@ -1,0 +1,11 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: vendari-web
+    ports:
+      - "4400:4400"
+    volumes:
+      - .:/home/node/app
