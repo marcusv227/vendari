@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerCustomOptions, SwaggerModule } from '@nestjs/swagger';
 import { useContainer } from 'class-validator';
+import { applyGlobalConfig } from './global-config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -34,9 +35,7 @@ async function bootstrap() {
 
   SwaggerModule.setup('docs', app, swaggerDocument, swaggerCustomOptions);
 
-  app.enableCors({
-    origin: '*',
-  });
+  applyGlobalConfig(app);
 
   await app.listen(process.env.API_PORT || 3100);
 }

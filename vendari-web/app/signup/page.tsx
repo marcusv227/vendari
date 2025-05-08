@@ -45,7 +45,7 @@ export default function SignupPage() {
               <Label htmlFor="name">Name</Label>
               <Input
                 id="name"
-                type="name"
+                type="text"
                 placeholder="John Doe"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -66,12 +66,12 @@ export default function SignupPage() {
             <div className="space-y-2">
               <Label htmlFor="address">Address</Label>
               <Input
-                id="address"
-                type="address"
-                placeholder="John Doe"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                required
+              id="address"
+              type="text"
+              placeholder="123 Main St, City, Country"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              required
               />
             </div>
             <div className="space-y-2">
@@ -87,14 +87,8 @@ export default function SignupPage() {
           </CardContent>
           <CardFooter className="flex flex-col space-y-2">
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Logging in..." : "Login"}
+              {isLoading ? "Signing Up..." : "Sign Up"}
             </Button>
-            <p className="text-sm text-center text-muted-foreground">
-              Don&apos;t have an account?{" "}
-              <Link href="#" className="text-primary hover:underline">
-                Sign up
-              </Link>
-            </p>
           </CardFooter>
         </form>
       </Card>

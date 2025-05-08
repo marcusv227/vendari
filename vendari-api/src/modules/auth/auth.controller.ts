@@ -14,6 +14,9 @@ export class AuthController {
       loginDto.email,
       loginDto.password,
     );
+    if (!user) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
     return this.authService.login(user);
   }
 }

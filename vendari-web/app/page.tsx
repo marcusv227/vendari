@@ -10,7 +10,7 @@ export default function Home() {
   return (
     <div className="container mx-auto px-4 py-8">
       <header className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold">My Store</h1>
+        <h1 className="text-2xl font-bold">Vendari</h1>
         <div className="flex items-center gap-4">
           <Link href="/cart">
             <Button variant="outline" size="icon" className="relative">
@@ -22,9 +22,6 @@ export default function Home() {
           </Link>
           <Link href="/login">
             <Button>Login</Button>
-          </Link>
-          <Link href="/signup">
-            <Button>Signup</Button>
           </Link>
         </div>
       </header>

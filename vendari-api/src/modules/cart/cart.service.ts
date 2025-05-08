@@ -12,7 +12,19 @@ export class CartService {
     });
   }
 
-  create(userId: number) {
-    return this.prisma.cart.create({ data: { userId } });
+  async create(userId: number) {
+    const existing = await this.prisma.cart.findFirst({
+      where: { userId },
+    });
+  
+    if (existing) {
+      return existing;
+    }
+  
+    return this.prisma.cart.create({
+      data: {
+        userId,
+      },
+    });
   }
 }
