@@ -8,6 +8,7 @@ import { jwtDecode } from "jwt-decode"
 import { Button } from "@/components/ui/button"
 import ProductList from "@/components/product-list"
 import ProductListSkeleton from "@/components/product-list-skeleton"
+import { useCart } from "@/context/cart-context"
 
 type DecodedToken = {
   userId: string
@@ -16,15 +17,9 @@ type DecodedToken = {
   iat: number
 }
 
-type CartItem = {
-  id: number
-  productId: number
-  quantity: number
-}
-
 export default function Home() {
   const [user, setUser] = useState<DecodedToken | null>(null)
-  const [cartCount, setCartCount] = useState(0)
+  const { cartCount, fetchCartCount } = useCart()
 
   useEffect(() => {
     const token = localStorage.getItem("token")
@@ -32,37 +27,13 @@ export default function Home() {
       try {
         const decoded: DecodedToken = jwtDecode(token)
         setUser(decoded)
-        fetchCartCount(token)
-        console.log()
+        fetchCartCount()
       } catch (error) {
-        console.error("Invalid token")
+        console.error("Token inválido")
         localStorage.removeItem("token")
       }
     }
   }, [])
-
-  const fetchCartCount = async (token: string) => {
-    try {
-      const response = await fetch(`http://localhost:3100/api/cart`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch cart")
-      }
-      const data = await response.json()
-
-      const items: CartItem[] = data.items || []
-      const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0)
-      setCartCount(totalQuantity)
-    } catch (error) {
-      console.error("Erro ao buscar o carrinho", error)
-    }
-  }
 
   const handleLogout = () => {
     localStorage.removeItem("token")
@@ -78,7 +49,7 @@ export default function Home() {
           <Link href="/cart">
             <Button variant="outline" size="icon" className="relative">
               <ShoppingCart className="h-5 w-5" />
-              <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center transition-transform duration-200 ease-in-out">
                 {cartCount}
               </span>
             </Button>
