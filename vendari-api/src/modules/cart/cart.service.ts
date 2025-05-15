@@ -12,19 +12,39 @@ export class CartService {
     });
   }
 
-  async create(userId: number) {
-    const existing = await this.prisma.cart.findFirst({
+  async getOrCreateCart(userId: number) {
+    let cart = await this.prisma.cart.findFirst({
       where: { userId },
+      include: { items: { include: { product: true } } },
     });
   
-    if (existing) {
-      return existing;
+    if (!cart) {
+      await this.prisma.cart.create({
+        data: { userId },
+      });
+  
+      cart = await this.prisma.cart.findFirst({
+        where: { userId },
+        include: { items: { include: { product: true } } },
+      });
     }
   
-    return this.prisma.cart.create({
-      data: {
-        userId,
-      },
+    return cart;
+  }
+
+  async clearCart(userId: number) {
+    const cart = await this.prisma.cart.findFirst({
+      where: { userId },
     });
+
+    if (!cart) {
+      throw new Error('Carrinho não encontrado para o usuário');
+    }
+
+    await this.prisma.cartItem.deleteMany({
+      where: { cartId: cart.id },
+    });
+
+    return cart;
   }
 }

@@ -7,9 +7,38 @@ import { UpdateCartItemDto } from '../dtos/update-cart-item.dto';
 export class CartItemService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(dto: CreateCartItemDto) {
-    return this.prisma.cartItem.create({ data: dto });
+  async createOrUpdate(userId: number, dto: Omit<CreateCartItemDto, 'cartId'>) {
+    const cart = await this.prisma.cart.findFirst({
+      where: { userId },
+    });
+  
+    if (!cart) {
+      throw new Error('Carrinho não encontrado para o usuário');
+    }
+  
+    const existing = await this.prisma.cartItem.findFirst({
+      where: {
+        cartId: cart.id,
+        productId: dto.productId,
+      },
+    });
+  
+    if (existing) {
+      return this.prisma.cartItem.update({
+        where: { id: existing.id },
+        data: { quantity: existing.quantity + dto.quantity },
+      });
+    }
+  
+    return this.prisma.cartItem.create({
+      data: {
+        productId: dto.productId,
+        quantity: dto.quantity,
+        cartId: cart.id,
+      },
+    });
   }
+  
 
   update(id: number, dto: UpdateCartItemDto) {
     return this.prisma.cartItem.update({

@@ -1,69 +1,164 @@
 "use client"
 
-import type React from "react"
+import React, { createContext, useContext, useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { Product } from "../lib/types"
 
-import { createContext, useContext, useEffect, useState } from "react"
-import type { Product } from "../lib/types"
-
-interface CartItem extends Product {
+interface CartItem {
+  id: number
+  cartId: number
+  productId: number
   quantity: number
+  product: {
+    id: number
+    name: string
+    description: string
+    price: number
+    imageUrl: string
+  }
 }
 
 interface CartContextType {
   cart: CartItem[]
-  addToCart: (product: Product) => void
-  removeFromCart: (productId: string) => void
-  clearCart: () => void
+  cartCount: number
+  fetchCart: () => Promise<void>
+  addToCart: (product: Product) => Promise<void>
+  removeFromCart: (productId: string) => Promise<void>
+  fetchCartCount: () => Promise<void>
+  clearCart: () => Promise<void>
+  getTotalItems: () => number
 }
 
 const CartContext = createContext<CartContextType>({
   cart: [],
-  addToCart: () => {},
-  removeFromCart: () => {},
-  clearCart: () => {},
+  cartCount: 0,
+  fetchCart: async () => {},
+  addToCart: async () => {},
+  fetchCartCount: async () => {},
+  removeFromCart: async () => {},
+  clearCart: async () => {},
+  getTotalItems: () => 0,
 })
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([])
+  const [cartCount, setCartCount] = useState(0)
+  const router = useRouter()
 
-  // Load cart from localStorage on mount
-  useEffect(() => {
-    const savedCart = localStorage.getItem("cart")
-    if (savedCart) {
-      try {
-        setCart(JSON.parse(savedCart))
-      } catch (error) {
-        console.error("Failed to parse cart from localStorage:", error)
-      }
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
+
+  const fetchCart = async () => {
+    if (!token) return
+
+    try {
+      const res = await fetch("http://localhost:3100/api/cart", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      if (!res.ok) throw new Error("Erro ao buscar carrinho")
+
+      const data = await res.json()
+      setCart(data.items) // ou `data.cartItems` dependendo da estrutura do backend
+    } catch (err) {
+      console.error("Erro ao buscar carrinho:", err)
     }
+  }
+
+  const addToCart = async (product: Product) => {
+    if (!token) {
+      alert("Você precisa estar logado para adicionar itens ao carrinho.")
+      router.push("/login")
+      return
+    }
+
+    try {
+      const res = await fetch("http://localhost:3100/api/cart-item", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          productId: product.id,
+          quantity: 1,
+        }),
+      })
+
+      if (!res.ok) throw new Error("Erro ao adicionar item")
+
+      fetchCartCount()
+      await fetchCart() // atualiza carrinho do backend
+    } catch (error) {
+      console.error("Erro ao adicionar ao carrinho:", error)
+    }
+  }
+
+  const removeFromCart = async (productId: string) => {
+    try {
+      await fetch(`http://localhost:3100/api/cart-item/delete/${productId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      await fetchCart()
+    } catch (err) {
+      console.error("Erro ao remover item:", err)
+    }
+  }
+
+  const clearCart = async () => {
+    try {
+      await fetch("http://localhost:3100/api/cart/clear", {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      setCart([])
+    } catch (err) {
+      console.error("Erro ao limpar carrinho:", err)
+    }
+  }
+
+  const getTotalItems = () => {
+    return cart.reduce((total, item) => total + item.quantity, 0)
+  }
+
+  const fetchCartCount = async () => {
+    const token = localStorage.getItem("token")
+    if (!token) return
+
+    try {
+      const res = await fetch("http://localhost:3100/api/cart", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      const data = await res.json()
+      const totalQuantity = data.items.reduce(
+        (sum: number, item: { quantity: number }) => sum + item.quantity,
+        0
+      )
+
+      setCartCount(totalQuantity)
+    } catch (error) {
+      console.error("Erro ao buscar o carrinho", error)
+    }
+  }
+
+  useEffect(() => {
+    fetchCart()
+    fetchCartCount()
   }, [])
 
-  // Save cart to localStorage when it changes
-  useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cart))
-  }, [cart])
-
-  const addToCart = (product: Product) => {
-    setCart((prevCart) => {
-      const existingItem = prevCart.find((item) => item.id === product.id)
-
-      if (existingItem) {
-        return prevCart.map((item) => (item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item))
-      } else {
-        return [...prevCart, { ...product, quantity: 1 }]
-      }
-    })
-  }
-
-  const removeFromCart = (productId: string) => {
-    setCart((prevCart) => prevCart.filter((item) => item.id !== productId))
-  }
-
-  const clearCart = () => {
-    setCart([])
-  }
-
-  return <CartContext.Provider value={{ cart, addToCart, removeFromCart, clearCart }}>{children}</CartContext.Provider>
+  return (
+    <CartContext.Provider value={{ cart, fetchCart, addToCart, removeFromCart, clearCart, getTotalItems, fetchCartCount, cartCount }}>
+      {children}
+    </CartContext.Provider>
+  )
 }
 
 export const useCart = () => useContext(CartContext)

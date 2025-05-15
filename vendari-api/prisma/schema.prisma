@@ -22,7 +22,7 @@ model Product {
   name        String
   description String
   price       Float
-  imageUrl    String
+  imageUrl    String   @db.VarChar(2048)
 
   cartItems   CartItem[]
 }

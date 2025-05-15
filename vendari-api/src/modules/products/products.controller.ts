@@ -6,13 +6,11 @@ import { Product } from '@prisma/client';
 import { UpdateProductDto } from '../dtos/update-product.dto';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 
-@ApiBearerAuth()
 @ApiTags('Products')
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
-  @UseGuards(JwtAuthGuard)
   @Post()
   @ApiOperation({ summary: 'Create a new product' })
   @ApiResponse({ status: 201, description: 'The product has been successfully created.' })
@@ -21,7 +19,6 @@ export class ProductsController {
     return this.productsService.create(createProductDto);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get()
   @ApiOperation({ summary: 'Get all products' })
   @ApiResponse({ status: 200, description: 'Return all products.' })
@@ -29,7 +26,6 @@ export class ProductsController {
     return this.productsService.findAll();
   }
 
-  @UseGuards(JwtAuthGuard)
   @Delete('/delete/:id')
   @ApiOperation({ summary: 'Delete a product by ID' })
   @ApiResponse({ status: 200, description: 'The product has been successfully deleted.' })
@@ -38,7 +34,6 @@ export class ProductsController {
     return this.productsService.delete(Number(id));
   }
 
-  @UseGuards(JwtAuthGuard)
   @Patch('/edit/:id')
   @ApiOperation({ summary: 'Edit a product by ID' })
   @ApiResponse({ status: 200, description: 'The product has been successfully updated.' })

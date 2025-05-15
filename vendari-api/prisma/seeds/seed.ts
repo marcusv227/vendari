@@ -1,25 +1,33 @@
-import { PrismaClient } from '@prisma/client';
-import { initializeUser } from './user';
+import { PrismaClient } from '@prisma/client'
+import { initializeUser } from './user'
+import { initializeProducts } from './product'
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient()
 
 async function main() {
-  const initializedUsers = await initializeUser();
-    await prisma.user.upsert({
-      where: {
-        email: initializedUsers.email,
-      },
-      update: {},
-      create: initializedUsers,
-    });
+  const user = await initializeUser()
+
+  await prisma.user.upsert({
+    where: { email: user.email },
+    update: {},
+    create: user,
+  })
+
+  const products = await initializeProducts()
+
+  for (const product of products) {
+    await prisma.product.create({
+      data: product,
+    })
   }
+}
 
 main()
-  .then(async () => {
-    await prisma.$disconnect();
-  })
   .catch(async (e) => {
-    console.log(e);
-    await prisma.$disconnect();
-    process.exit(1);
-  });
+    console.error(e)
+    await prisma.$disconnect()
+    process.exit(1)
+  })
+  .finally(async () => {
+    await prisma.$disconnect()
+  })

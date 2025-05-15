@@ -10,7 +10,6 @@ import {
   import { UniqueErrorFilter } from './shared/filters/unique-error.filter';
   import { ServiceUnavailableErrorFilter } from './shared/filters/service-unavailable-error.filter';
   import { UnauthorizedErrorFilter } from './shared/filters/unauthorized-error.filter';
-import { JwtAuthGuard } from './modules/auth/jwt.guard';
   
   export function applyGlobalConfig(app: INestApplication) {
     app.useGlobalPipes(
@@ -27,10 +26,6 @@ import { JwtAuthGuard } from './modules/auth/jwt.guard';
         errorHttpStatusCode: 406,
       }),
     );
-  
-    const reflector = app.get(Reflector);
-    app.useGlobalInterceptors(new ClassSerializerInterceptor(reflector));
-    app.useGlobalGuards(new JwtAuthGuard(reflector));
   
     app.useGlobalFilters(
       new BusinessErrorFilter(),

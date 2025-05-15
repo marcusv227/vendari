@@ -11,18 +11,23 @@ import { useCart } from "@/context/cart-context"
 import { formatCurrency } from "../../lib/utils"
 
 export default function CartPage() {
-  const { cart, removeFromCart, clearCart } = useCart()
+  const { cart, removeFromCart, clearCart, fetchCart } = useCart()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
+    fetchCart()
   }, [])
 
   if (!mounted) {
     return null
   }
 
-  const subtotal = cart.reduce((total, item) => total + item.price * item.quantity, 0)
+  const checkout = async () => {
+    clearCart()
+    alert("Checkout successful!")
+  }
+  const subtotal = cart.reduce((total, item) => total + item.product.price * item.quantity, 0)
   const tax = subtotal * 0.1
   const total = subtotal + tax
 
@@ -53,16 +58,20 @@ export default function CartPage() {
                 <div key={item.id} className="flex items-center justify-between border rounded-lg p-4">
                   <div className="flex items-center space-x-4">
                     <div className="w-16 h-16 bg-muted rounded-md flex items-center justify-center">
-                      <span className="text-2xl">{item.emoji}</span>
+                      <img
+                        src={item.product.imageUrl}
+                        alt={item.product.name}
+                        className="object-cover h-full w-full rounded-md">
+                        </img>
                     </div>
                     <div>
-                      <h3 className="font-medium">{item.name}</h3>
+                      <h3 className="font-medium">{item.product.name}</h3>
                       <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-4">
-                    <p className="font-medium">{formatCurrency(item.price * item.quantity)}</p>
-                    <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.id)}>
+                    <p className="font-medium">{formatCurrency(item.product.price * item.quantity)}</p>
+                    <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.id.toString())}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -97,7 +106,7 @@ export default function CartPage() {
                 </div>
               </CardContent>
               <CardFooter>
-                <Button className="w-full" onClick={() => alert("Checkout functionality would go here!")}>
+                <Button className="w-full" onClick={() => checkout()}>
                   Checkout
                 </Button>
               </CardFooter>

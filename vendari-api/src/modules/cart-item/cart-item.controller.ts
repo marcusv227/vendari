@@ -1,24 +1,24 @@
-import { Controller, Post, Body, Patch, Delete, Param, Get, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Patch, Delete, Param, Get, UseGuards, Req } from '@nestjs/common';
 import { CartItemService } from './cart-item.service';
 import { CreateCartItemDto } from '../dtos/create-cart-item.dto';
 import { UpdateCartItemDto } from '../dtos/update-cart-item.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { CartItem } from '@prisma/client';
 import { JwtAuthGuard } from '../auth/jwt.guard';
+import { getUserIdFromRawHeaders } from '../shared/domain/jsonwebtoken';
 
 @ApiBearerAuth()
 @ApiTags('Cart Items')
 @Controller('cart-item')
 export class CartItemController {
-  constructor(private readonly cartItemService: CartItemService) {}
+  constructor(private readonly cartItemService: CartItemService) { }
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  @ApiOperation({ summary: 'Create a new cart item' })
-  @ApiResponse({ status: 201, description: 'The cart item has been successfully created.' })
-  @ApiResponse({ status: 403, description: 'Forbidden.' })
-  async create(@Body() dto: CreateCartItemDto): Promise<CartItem> {
-    return this.cartItemService.create(dto);
+  @ApiOperation({ summary: 'Add or update item in cart' })
+  async createOrUpdate(@Req() req, @Body() dto: CreateCartItemDto): Promise<CartItem> {
+    const userId = getUserIdFromRawHeaders(req);
+    return this.cartItemService.createOrUpdate(Number(userId), dto);
   }
 
   @UseGuards(JwtAuthGuard)
